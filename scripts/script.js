@@ -37,7 +37,7 @@ function draw() {
         ctx.moveTo(trail[i].x, trail[i].y);
         ctx.lineTo(trail[i + 1].x, trail[i + 1].y);
         ctx.lineWidth = circleSize * 2; // Ширина линии равна диаметру шарика
-        ctx.strokeStyle = "rgba(0, 0, 255, " + (1 - i / (trail.length - 1)) + ")"; // Прозрачность убывает от 1 до 0
+        ctx.strokeStyle = "rgba(0, 0, 255, " + ( i / (trail.length - 1)) + ")"; // Прозрачность убывает от 1 до 0
         ctx.stroke();
         ctx.closePath();
     }
@@ -56,7 +56,7 @@ function draw() {
 
     // Увеличиваем угол для следующего кадра
     angle += 0.02;
-
+    
     requestAnimationFrame(draw); // Запускаем следующий кадр анимации
 }
 
