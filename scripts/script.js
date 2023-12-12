@@ -1,61 +1,67 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-var centerX = canvas.width / 2;  // X-координата центра холста
-var centerY = canvas.height / 2; // Y-координата центра холста
-var radius = 50;                // Радиус орбиты
-var angle = 0;                  // Начальный угол
-var circleSize = 20;            // Начальный размер круга
-var decreasing = true;          // Флаг для отслеживания уменьшения
-var trail = [];                 // Массив для хранения следа
+var circle = {
+    centerX: canvas.width / 2,
+    centerY: canvas.height / 2,
+    radius: 50,
+    angle: 0,
+    circleSize: 20,
+    decreasing: true,
+    trail: [],
+};
+
+// Добавляем обработчик события для отслеживания движения мыши
+canvas.addEventListener("mousemove", function (event) {
+    var rect = canvas.getBoundingClientRect();
+    // Обновляем центр круга в соответствии с текущими координатами мыши
+    circle.centerX = event.clientX - rect.left;
+    circle.centerY = event.clientY - rect.top;
+});
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Очистить холст
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Рассчитываем координаты круга на орбите
-    var x = centerX + radius * Math.cos(angle);
-    var y = centerY + radius * Math.sin(angle);
+    var x = circle.centerX + circle.radius * Math.cos(circle.angle);
+    var y = circle.centerY + circle.radius * Math.sin(circle.angle);
 
-    // Добавляем текущие координаты в след
-    trail.push({ x: x, y: y });
+    circle.trail.push({ x: x, y: y });
 
-    // Изменение размера круга
-    if (decreasing) {
-        circleSize -= 0.05;
+    if (circle.decreasing) {
+        circle.circleSize -= 0.05;
     } else {
-        circleSize += 0.05;
+        circle.circleSize += 0.05;
     }
 
-    // Изменение направления при достижении нулевого или начального радиуса
-    if (circleSize <= 0 || circleSize >= 20) {
-        decreasing = !decreasing;
+    if (circle.circleSize <= 0 || circle.circleSize >= 20) {
+        circle.decreasing = !circle.decreasing;
     }
 
-    // Рисуем след
-    for (var i = 0; i < trail.length - 1; i++) {
+    // Рисуем след по орбите
+    for (var i = 0; i < circle.trail.length - 1; i++) {
+        var hue = ((i + circle.angle * 50) % 360) / 360; // Изменение оттенка со временем
+        var lineWidth = circle.circleSize * (i / (circle.trail.length))*2;
         ctx.beginPath();
-        ctx.moveTo(trail[i].x, trail[i].y);
-        ctx.lineTo(trail[i + 1].x, trail[i + 1].y);
-        ctx.lineWidth = circleSize * 2; // Ширина линии равна диаметру шарика
-        ctx.strokeStyle = "rgba(0, 0, 255, " + ( i / (trail.length - 1)) + ")"; // Прозрачность убывает от 1 до 0
+        ctx.moveTo(circle.trail[i].x, circle.trail[i].y);
+        ctx.lineTo(circle.trail[i + 1].x, circle.trail[i + 1].y);
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = "hsla(" + (hue * 360) + ", 100%, 50%, " + (i / (circle.trail.length)) + ")";
         ctx.stroke();
         ctx.closePath();
     }
 
-    // Ограничиваем длину следа половиной круга (180 градусов)
-    if (trail.length > Math.PI * radius ) {
-        trail.shift(); // Удаляем первую точку, чтобы ограничить длину
+    if (circle.trail.length > Math.PI * circle.radius) {
+        circle.trail.shift(); // Удаляем первую точку, чтобы ограничить длину следа
     }
 
     // Рисуем круг на рассчитанных координатах
     ctx.beginPath();
-    ctx.arc(x, y, Math.max(circleSize, 0), 0, Math.PI * 2);
-    ctx.fillStyle = "blue";
+    ctx.arc(x, y, Math.max(circle.circleSize, 0), 0, Math.PI * 2);
+    ctx.fillStyle = "hsla(" + (hue * 360) + ", 100%, 50%, 1)"; // Изменение цвета шарика со временем
     ctx.fill();
     ctx.closePath();
 
-    // Увеличиваем угол для следующего кадра
-    angle += 0.02;
+    circle.angle += 0.02; // Увеличиваем угол для следующего кадра
     
     requestAnimationFrame(draw); // Запускаем следующий кадр анимации
 }
